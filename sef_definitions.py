@@ -97,7 +97,7 @@ class SEFWorld(SEFBase):
 				m.texture  = line.split()[1]
 			elif len(line.split()) > 2:
 				m.texture = line.split()[1]
-				for n in xrange(len(line.split())-2):
+				for n in range(len(line.split())-2):
 					m.texture += " " + line.split()[n+2]
 			else:
 				raise Exception('Error Loading textures.')
