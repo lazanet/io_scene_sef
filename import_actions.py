@@ -119,6 +119,9 @@ def draw_model(world):
 	# First load all materials
 	loaded_materials = {}
 	for material in world.materials:
+		if not material.texture:
+			print(f"Material {material.name} has an invalid filepath it wont be loaded")
+			continue
 		loaded_materials[material.name] = load_texture(material.name, material.texture)
 	
 	# Next, load all objects
