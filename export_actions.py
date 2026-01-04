@@ -83,7 +83,7 @@ def save_world():
 				rebound = SEFRebound()
 				rebound.name = obj.name
 				rebound.verts = [(obj.matrix_world @ v.co) for v in obj.data.vertices]
-				rebound.parts = len(rebound.verts) / 4
+				rebound.parts = len(rebound.verts) // 4
 				world.rebounds.append(rebound)
 			else:
 				sef_obj = SEFObject()
