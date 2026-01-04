@@ -60,6 +60,10 @@ def save_world():
 		sef_material = SEFMaterial()
 		sef_material.name = mat.name
 		sef_material.texture = mat.node_tree.nodes["Image Texture"].image.filepath
+		if not sef_material.texture:
+			# Extra check to avoid exporting empty paths that might break SIE when importing
+			print(f"Material {sef_material.name} has no filepath for the texture it wont be included on the export")
+			continue
 		world.materials.append(sef_material)
 			
 	for collection in traverse_tree(bpy.context.scene.collection):
