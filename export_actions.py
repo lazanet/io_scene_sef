@@ -88,8 +88,15 @@ def save_world():
 			else:
 				sef_obj = SEFObject()
 				sef_obj.name = obj.name
-				if len(obj.data.materials) > 0:
-					sef_obj.material = obj.data.materials[0].name
+				if not obj.data.materials:
+					raise Exception(f"Object {sef_obj.name} has no material assigned fix this before exporting!")
+				mat = obj.data.materials[0]
+				if mat is None:
+					# Case for when you unlink the material from the object but still haven't removed the material slot
+					raise Exception(f"Object {sef_obj.name} has no material assigned on slot 0 fix this before exporting!")
+				sef_obj.material = obj.data.materials[0].name
+				if not is_valid_material_name(sef_obj.material):
+					raise Exception(f"Object {sef_obj.name} has an invalid material name {sef_obj.material} fix this before exporting!")
 				sef_obj.verts = [(obj.matrix_world @ v.co) for v in obj.data.vertices]
 				# vert_color and uv extraction
 				mesh = obj.data
