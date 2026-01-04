@@ -43,14 +43,18 @@ group_names = ["SKY","BASE","REFLEX","UNK1","FIELD1","FIELD2","FIELD3","UNK2","R
 	"LIGHT_EFFECT","RIGHT_SIDE","LEFT_SIDE","UPPER_SIDE","DOWN_SIDE","UNK11","UNK12","UNK13","ADS_1","ADS_2",\
 	"ADS_3","REBOUNDS","LIGHTS"]
 
+def is_valid_material_name(name:str) -> bool:
+	return all(c in string.hexdigits for c in name)
+
 def save_world():
 	world = SEFWorld()
 	
 	world.weather = bpy.context.scene.name[len("Stadium-"):]
 	
 	for mat in bpy.data.materials:
-#		if not all(c in string.hexdigits for c in mat.name):
-#			continue
+		if not is_valid_material_name(mat.name):
+			# Needed to avoid exporting material such as xxxx.001, etc this break SIE
+			continue
 		if not mat.use_nodes or not "Image Texture" in mat.node_tree.nodes:
 			continue
 		sef_material = SEFMaterial()
