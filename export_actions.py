@@ -43,19 +43,27 @@ group_names = ["SKY","BASE","REFLEX","UNK1","FIELD1","FIELD2","FIELD3","UNK2","R
 	"LIGHT_EFFECT","RIGHT_SIDE","LEFT_SIDE","UPPER_SIDE","DOWN_SIDE","UNK11","UNK12","UNK13","ADS_1","ADS_2",\
 	"ADS_3","REBOUNDS","LIGHTS"]
 
+def is_valid_material_name(name:str) -> bool:
+	return all(c in string.hexdigits for c in name)
+
 def save_world():
 	world = SEFWorld()
 	
 	world.weather = bpy.context.scene.name[len("Stadium-"):]
 	
 	for mat in bpy.data.materials:
-#		if not all(c in string.hexdigits for c in mat.name):
-#			continue
+		if not is_valid_material_name(mat.name):
+			# Needed to avoid exporting material such as xxxx.001, etc this break SIE
+			continue
 		if not mat.use_nodes or not "Image Texture" in mat.node_tree.nodes:
 			continue
 		sef_material = SEFMaterial()
 		sef_material.name = mat.name
 		sef_material.texture = mat.node_tree.nodes["Image Texture"].image.filepath
+		if not sef_material.texture:
+			# Extra check to avoid exporting empty paths that might break SIE when importing
+			print(f"Material {sef_material.name} has no filepath for the texture it wont be included on the export")
+			continue
 		world.materials.append(sef_material)
 			
 	for collection in traverse_tree(bpy.context.scene.collection):
@@ -75,13 +83,20 @@ def save_world():
 				rebound = SEFRebound()
 				rebound.name = obj.name
 				rebound.verts = [(obj.matrix_world @ v.co) for v in obj.data.vertices]
-				rebound.parts = len(rebound.verts) / 4
+				rebound.parts = len(rebound.verts) // 4
 				world.rebounds.append(rebound)
 			else:
 				sef_obj = SEFObject()
 				sef_obj.name = obj.name
-				if len(obj.data.materials) > 0:
-					sef_obj.material = obj.data.materials[0].name
+				if not obj.data.materials:
+					raise Exception(f"Object {sef_obj.name} has no material assigned fix this before exporting!")
+				mat = obj.data.materials[0]
+				if mat is None:
+					# Case for when you unlink the material from the object but still haven't removed the material slot
+					raise Exception(f"Object {sef_obj.name} has no material assigned on slot 0 fix this before exporting!")
+				sef_obj.material = obj.data.materials[0].name
+				if not is_valid_material_name(sef_obj.material):
+					raise Exception(f"Object {sef_obj.name} has an invalid material name {sef_obj.material} fix this before exporting!")
 				sef_obj.verts = [(obj.matrix_world @ v.co) for v in obj.data.vertices]
 				# vert_color and uv extraction
 				mesh = obj.data

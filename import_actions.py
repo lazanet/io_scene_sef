@@ -71,6 +71,14 @@ def load_texture(name, location):
 	curr.node_tree.links.new(bsdf.inputs['Base Color'], texImage.outputs[0])
 	return curr
 
+def create_empty_material(name):
+	"""
+	Helper method that creates a empty material 
+	useful for when the object uses an outside stadium file material 
+	which is not included on the material list
+	also this way of creating the material wont be exported into the sef (as long as is not changed by the user)
+	"""
+	return bpy.data.materials.new(name=name)
 
 def recursive_unlink(obj):
 	if hasattr(obj, 'children'):
@@ -119,6 +127,9 @@ def draw_model(world):
 	# First load all materials
 	loaded_materials = {}
 	for material in world.materials:
+		if not material.texture:
+			print(f"Material {material.name} has an invalid filepath it wont be loaded")
+			continue
 		loaded_materials[material.name] = load_texture(material.name, material.texture)
 	
 	# Next, load all objects
@@ -126,9 +137,12 @@ def draw_model(world):
 		collection = bpy.data.collections.new(group.name)
 		bpy.context.scene.collection.children.link(collection)
 		for obj in group.obj_list:
-			add_mesh(obj.name, obj.verts, obj.faces, obj.uv, vert_color=obj.vcol, material=loaded_materials[obj.material], col_name=group.name)
-	
-	
+			material = loaded_materials.get(obj.material, None)
+			if material is None:
+				material = create_empty_material(obj.material)
+			add_mesh(obj.name, obj.verts, obj.faces, obj.uv, vert_color=obj.vcol, material=material, col_name=group.name)
+
+
 	# Load all lights
 	collection = bpy.data.collections.new("LIGHTS")
 	bpy.context.scene.collection.children.link(collection)
