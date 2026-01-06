@@ -33,7 +33,7 @@ def load_sef(filepath):
 	draw_model(world)
 	return {'FINISHED'}
 
-def add_mesh(name, verts, faces, uv=None, edges=None, material=None, vert_color=(0, 0, 0, 0), col_name="Collection"):	
+def add_mesh(name, verts, faces, uv=None, edges=None, material=None, vert_color=None, col_name="Collection"):	
 	if edges is None:
 		edges = []
 	mesh = bpy.data.meshes.new(name)
@@ -54,7 +54,8 @@ def add_mesh(name, verts, faces, uv=None, edges=None, material=None, vert_color=
 		
 	for face in mesh.polygons:
 			for vert_idx, loop_idx in zip(face.vertices, face.loop_indices):
-				vcol_layer.data[vert_idx].color = [i/255 for i in vert_color[vert_idx]]
+				if vert_color is not None:
+					vcol_layer.data[vert_idx].color = [i/255 for i in vert_color[vert_idx]]
 
 	obj = bpy.data.objects.new(name, mesh)
 	bpy.data.collections[col_name].objects.link(obj)
