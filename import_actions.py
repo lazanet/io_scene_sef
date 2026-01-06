@@ -170,7 +170,11 @@ def draw_model(world):
 	collection = bpy.data.collections.new("REBOUNDS")
 	bpy.context.scene.collection.children.link(collection)
 	for rebound in world.rebounds:
-		add_mesh(rebound.name, rebound.verts, [], col_name="REBOUNDS")
+		if len(rebound.verts) % 4 != 0:
+			print(f"Rebound '{rebound.name}': vertex count must be a multiple of 4 (quads expected), rebound not imported")
+			continue
+		faces = [(i, i + 1, i + 2, i + 3) for i in range(0, len(rebound.verts), 4)]
+		add_mesh(rebound.name, rebound.verts, faces, col_name="REBOUNDS")
 	
 	# Refresh render
 	bpy.context.evaluated_depsgraph_get().update()
