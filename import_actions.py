@@ -85,7 +85,7 @@ def recursive_unlink(obj):
 	if hasattr(obj, 'children'):
 		for child in obj.children:
 			recursive_unlink(child)
-		obj.unlink(child)
+			obj.unlink(child)
 
 def reset_blend():
 	try:
