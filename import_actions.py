@@ -33,7 +33,7 @@ def load_sef(filepath):
 	draw_model(world)
 	return {'FINISHED'}
 
-def add_mesh(name, verts, faces, uv=None, edges=None, material=None, vert_color=(0, 0, 0, 0), col_name="Collection"):	
+def add_mesh(name, verts, faces, uv=None, edges=None, material=None, vert_color=None, col_name="Collection"):	
 	if edges is None:
 		edges = []
 	mesh = bpy.data.meshes.new(name)
@@ -54,7 +54,8 @@ def add_mesh(name, verts, faces, uv=None, edges=None, material=None, vert_color=
 		
 	for face in mesh.polygons:
 			for vert_idx, loop_idx in zip(face.vertices, face.loop_indices):
-				vcol_layer.data[vert_idx].color = [i/255 for i in vert_color[vert_idx]]
+				if vert_color is not None:
+					vcol_layer.data[vert_idx].color = [i/255 for i in vert_color[vert_idx]]
 
 	obj = bpy.data.objects.new(name, mesh)
 	bpy.data.collections[col_name].objects.link(obj)
@@ -84,7 +85,7 @@ def recursive_unlink(obj):
 	if hasattr(obj, 'children'):
 		for child in obj.children:
 			recursive_unlink(child)
-		obj.unlink(child)
+			obj.unlink(child)
 
 def reset_blend():
 	try:
@@ -170,7 +171,11 @@ def draw_model(world):
 	collection = bpy.data.collections.new("REBOUNDS")
 	bpy.context.scene.collection.children.link(collection)
 	for rebound in world.rebounds:
-		add_mesh(rebound.name, rebound.verts, [], col_name="REBOUNDS")
+		if len(rebound.verts) % 4 != 0:
+			print(f"Rebound '{rebound.name}': vertex count must be a multiple of 4 (quads expected), rebound not imported")
+			continue
+		faces = [(i, i + 1, i + 2, i + 3) for i in range(0, len(rebound.verts), 4)]
+		add_mesh(rebound.name, rebound.verts, faces, col_name="REBOUNDS")
 	
 	# Refresh render
 	bpy.context.evaluated_depsgraph_get().update()
